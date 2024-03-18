@@ -3,7 +3,7 @@ layout: post
 title: Exploit Development y Analisis de CVE-2021-31956 NTFS Windows Kernel Pool Overflow
 ---
 
-## Analisis
+# Analisis
 La vulnerabilidad se encuentra en el componente ntfs.sys dentro de la funcion **NtfsQueryEaUserEaList**, podemos ver el codigo vulnerable y el parche.
 
 Funcion Vulnerable:
