@@ -3,6 +3,7 @@ layout: post
 title: Exploit Development y Analisis de CVE-2021-31956 NTFS Windows Kernel Pool Overflow
 ---
 
+## Analisis
 La vulnerabilidad se encuentra en el componente ntfs.sys dentro de la funcion **NtfsQueryEaUserEaList**, podemos ver el codigo vulnerable y el parche.
 
 Funcion Vulnerable:
@@ -192,6 +193,8 @@ la verificacion da  137 <= 0 - 2
 Va a superar la verficacion y se va copiar 137 bytes al final de buffer por lo que va a desbordar el bloque de memoria contiguo.
 
 
+## Activando Vulnerabilidad
+
 Primero para que ocurra todo esto se asigna el bloque de memoria en el pool paginado que va a desbordarse en la funcion **NtfsCommonQueryEa** y nosotros tenemos control de el tamaño de este bloque, entonces para triggerear esta vulnerabilidad nesesitamos llamar desde userspace a la funcion NtQueryEaFile que nos va a llevar al codigo vulnerable pero primero nesesitamos llamar a la funcion **NtSetEaFile** para  construir un archivo de atributos extendidos NTFS y luego pasarselo como argumento a la funcion **NtQueryEaFile**.
 
 El codigo va  a quedar asi:
@@ -225,6 +228,7 @@ NTSTATUS Status = NtSetEaFile(hFile, &eaStatus, payLoad, sizeof(payLoad));
 ```
 
 
+## Configuracion de la memoria y Objetos Windows Notification Facility
 
 Ahora usaremos los objetos WNF  **Windows Notification Facility**, vamos a  sprayear el paged pool  y  sobreescribir su estructura  con el desbordamiento para lograr la escalada de privilegios.
 
@@ -379,6 +383,8 @@ state = NtQueryWnfStateData(&StateNames[i], NULL, NULL, &Stamp, &Buff, &BufferSi
 
 Aca lo que sucede que la funcion  **NtQueryWnfStateData** lee datos y los almacena en  **Buff** y si el **BufferSIze** es menor que **StateData→DataSize** entonces nos devolvera un **C0000023** que quiere decir que estamos antes un **WNF_STATE_DATA** corrompido.
 
+
+## PreviousMode y Robo de tokens
 luego lo destacado que tiene la estructura  **WNF_NAME_INSTANCE** es el campo **WNF_NAME_INSTANCE.CreatorProcess** que nos da el **EPROCESS** del proceso actual.
 
 Otra cosa relevante que tiene  **WNF_NAME_INSTANCE** es el campo **_WNF_NAME_INSTANCE.StateData** Que es un puntero a **_WNF_STATE_DATA** y si reemplazamos ese puntero por una direccion arbitraria podemos leer y escribir en dicha direccion.
@@ -453,5 +459,5 @@ bool StealToken(UINT_PTR Eprocess, UINT_PTR* OldToken) {
 
 ```
 
-Demostracion:
+##Demostracion
 ![Configuracion de memoria](/images/photo_5136685581147942004_y.jpg)
