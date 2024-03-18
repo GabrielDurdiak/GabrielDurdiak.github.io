@@ -145,7 +145,35 @@ ea_block_size <= out_buf_length - padding
 out_buf_length se pasa como parametro y disminuye cada loop.
 
 
-La variable padding esta calculado por la sigueiente operacion ((ea_block_size + 3) 0xFFFFFFFC) - ea_block_size , por lo que tenemos control sobre ella.
+La variable padding esta calculado por la siguiente operacion ((ea_block_size + 3) 0xFFFFFFFC) - ea_block_size , por lo que tenemos control sobre ella.
+
+Luego out_buf_pos es el bloque de memoria asignado en el pool donde se va a copiar la inforamcion que se asigna en la funcion NtfsCommonQueryEa y va a desbordarse.
+
+Tambien tenemos control sobre EaNameLength y EaValueLength.
+
+
+Pongamos un ejemplo de desborde:
+
+supongamos que pasamos los siguiente valores para el primer loop:
+
+
+```c
+EaNameLength = 5
+EaValueLength = 4
+
+ea_block_size = 9 + 5 + 4 // 18
+padding = 0
+
+por lo que la verficacion sera:
+18 <= 18 - 0 .
+
+out_buf_length = 18 - 18 + 0 
+out_buf_length = 0.
+
+padding = ((18+3)   0xFFFFFFFC) - 18
+padding = 2
+
+```
 
 
 
