@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Exploit Development: Analisis y Escritura de CVE-2021-31956 NTFS Windows Kernel Pool Overflow
+title: Exploit Development y Analisis de CVE-2021-31956 NTFS Windows Kernel Pool Overflow
 ---
 
 Next you can update your site name, avatar and other options using the _config.yml file in the root of your repository (shown below).
