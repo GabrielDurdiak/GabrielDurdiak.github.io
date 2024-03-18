@@ -459,5 +459,6 @@ bool StealToken(UINT_PTR Eprocess, UINT_PTR* OldToken) {
 
 ```
 
-##Demostracion
+## Demostracion
+
 ![Configuracion de memoria](/images/photo_5136685581147942004_y.jpg)
