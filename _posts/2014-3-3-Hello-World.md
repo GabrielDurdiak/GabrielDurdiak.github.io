@@ -58,7 +58,7 @@ LABEL_8:
 
 El parche:
 
-´´´ c
+`` c
  v12 = *v11;
     v13 = *((unsigned __int8 *)v11 + 4);
     v22 = *v11 + v8;
@@ -85,10 +85,7 @@ El parche:
         }
         else
         {
-
-
-
-´´´
+```
 
 
 
