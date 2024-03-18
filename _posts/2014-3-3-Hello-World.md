@@ -3,7 +3,7 @@ layout: post
 title: Exploit Development y Analisis de CVE-2021-31956 NTFS Windows Kernel Pool Overflow
 ---
 
-La vulnerabilidad se encuentra en el componente ntfs.sys dentro de la funcion NtfsQueryEaUserEaList, podemos ver el codigo vulnerable y el parche.
+La vulnerabilidad se encuentra en el componente ntfs.sys dentro de la funcion **NtfsQueryEaUserEaList**, podemos ver el codigo vulnerable y el parche.
 
 Funcion Vulnerable:
 
@@ -121,9 +121,9 @@ LABEL_8:
               }
 ```
 
-Vemos que recorre cada atributo EA y lo copia en el bloque de el pool que se asigno anteriormente, el cual tenemos control de su tamaño tambien  y el tamaño de cada copia es ea_block->EaValueLenght + ea_blocal->EaNameLength + 9.
+Vemos que recorre cada atributo EA y lo copia en el bloque de el pool que se asigno anteriormente, el cual tenemos control de su tamaño tambien  y el tamaño de cada copia es **ea_block->EaValueLenght + ea_blocal->EaNameLength + 9.**
 
-La estructura ea_block es la siguiente:
+La estructura **ea_block** es la siguiente:
 
 ```c
 typedef struct _FILE_FULL_EA_INFORMATION {
@@ -142,14 +142,14 @@ Vemos que hay una verficacion  antes de cada copia que es:
 ea_block_size <= out_buf_length - padding
 
 ```
-out_buf_length se pasa como parametro y disminuye cada loop.
+**out_buf_length** se pasa como parametro y disminuye cada loop.
 
 
-La variable padding esta calculado por la siguiente operacion ((ea_block_size + 3) 0xFFFFFFFC) - ea_block_size , por lo que tenemos control sobre ella.
+La variable **padding** esta calculado por la siguiente operacion **((ea_block_size + 3) 0xFFFFFFFC) - ea_block_size** , por lo que tenemos control sobre ella.
 
-Luego out_buf_pos es el bloque de memoria asignado en el pool donde se va a copiar la inforamcion que se asigna en la funcion NtfsCommonQueryEa y va a desbordarse.
+Luego **out_buf_pos** es el bloque de memoria asignado en el pool donde se va a copiar la inforamcion que se asigna en la funcion **NtfsCommonQueryEa** y va a desbordarse.
 
-Tambien tenemos control sobre EaNameLength y EaValueLength.
+Tambien tenemos control sobre **EaNameLength** y **EaValueLength**.
 
 
 Pongamos un ejemplo de desborde:
@@ -192,7 +192,7 @@ la verificacion da  137 <= 0 - 2
 Va a superar la verficacion y se va copiar 137 bytes al final de buffer por lo que va a desbordar el bloque de memoria contiguo.
 
 
-Primero para que ocurra todo esto se asigna el bloque de memoria en el pool paginado que va a desbordarse en la funcion NtfsCommonQueryEa y nosotros tenemos control de el tamaño de este bloque, entonces para triggerear esta vulnerabilidad nesesitamos llamar desde userspace a la funcion NtQueryEaFile que nos va a llevar al codigo vulnerable pero primero nesesitamos llamar a la funcion NtSetEaFile para  construir un archivo de atributos extendidos NTFS y luego pasarselo como argumento a la funcion NtQueryEaFile.
+Primero para que ocurra todo esto se asigna el bloque de memoria en el pool paginado que va a desbordarse en la funcion **NtfsCommonQueryEa** y nosotros tenemos control de el tamaño de este bloque, entonces para triggerear esta vulnerabilidad nesesitamos llamar desde userspace a la funcion NtQueryEaFile que nos va a llevar al codigo vulnerable pero primero nesesitamos llamar a la funcion **NtSetEaFile** para  construir un archivo de atributos extendidos NTFS y luego pasarselo como argumento a la funcion **NtQueryEaFile**.
 
 El codigo va  a quedar asi:
 
@@ -226,9 +226,9 @@ NTSTATUS Status = NtSetEaFile(hFile, &eaStatus, payLoad, sizeof(payLoad));
 
 
 
-Ahora usaremos los objetos WNF  Windows Notification Facility, vamos a  sprayear el paged pool  y  sobreescribir su estructura  con el desbordamiento para lograr la escalada de privilegios.
+Ahora usaremos los objetos WNF  **Windows Notification Facility**, vamos a  sprayear el paged pool  y  sobreescribir su estructura  con el desbordamiento para lograr la escalada de privilegios.
 
-Vamos a nesesitar sprayear el pool con dos estructuras que son _WNF_NAME_INSTANCE y _WNF_STATE_DATA.
+Vamos a nesesitar sprayear el pool con dos estructuras que son **_WNF_NAME_INSTANCE** y **_WNF_STATE_DATA**.
 
 ```c
 
@@ -260,20 +260,20 @@ nt!_WNF_NAME_INSTANCE
 
 ```
 
-Estas estructuras son allocadas en el pool paginado por medio de las funciones NtCreateWnfStateName and NtUpdateWnfStateData, nesesitamos asignar estas dos estrcuturas y que nuestra memoria quede confirgurada de la siguiente manera:
+Estas estructuras son allocadas en el pool paginado por medio de las funciones **NtCreateWnfStateName** and **NtUpdateWnfStateData**, nesesitamos asignar estas dos estrcuturas y que nuestra memoria quede confirgurada de la siguiente manera:
 
 ![Configuracion de memoria](/images/NTFS%20CHUNK.png)
 
 
-Primero empezamos con la primera estructura que queremos que desborde que es _WNF_STATE_DATA, asignamos varias estructuras en el pool y liberamos otras con la funcion NtDeleteWnfStateData,luego como primera prueba para ver si  nuestra estructura _WNF_STATE_DATA fue corrompida cuando activamos la vulnerabilidad tenemos que ver el  ChangeStamp es 0xcafe  que ese valor fue puesto por nosotros para identificarlo.
+Primero empezamos con la primera estructura que queremos que desborde que es **_WNF_STATE_DATA**, asignamos varias estructuras en el pool y liberamos otras con la funcion **NtDeleteWnfStateData**,luego como primera prueba para ver si  nuestra estructura **_WNF_STATE_DATA** fue corrompida cuando activamos la vulnerabilidad tenemos que ver el  **ChangeStamp** es **0xcafe**  que ese valor fue puesto por nosotros para identificarlo.
 
 ![Configuracion de memoria](https://decoded.avast.io/wp-content/uploads/sites/2/2022/01/wnf_state_data.png)
 
-Despues de que tengamos una corrupcion exitosa de _WNF_STATE_DATA necesitamos asignar la otra estrcutura que es _WNF_NAME_INSTANCE que quede adyacente a la estructura WNF_STATE_DATA como vimos en la imagen mas arriba.
+Despues de que tengamos una corrupcion exitosa de **_WNF_STATE_DATA** necesitamos asignar la otra estructura que es **_WNF_NAME_INSTANCE** que quede adyacente a la estructura **WNF_STATE_DATA** como vimos en la imagen mas arriba.
 
-Antes expliquemos el porque corromper la estructura _WNF_STATE_DATA primero, es porque  el campo _WNF_STATE_DATA.AllocatedSize determina cuantos bytes se pueden escribir  y _WNF_STATE_DATA.DataSize determina cuantos bytes podemos leer  y al corromper estos campos con un valor alto nos proporciona una primitiva de lectura y escritura para escribir mas que el tamaño del buffe, con la funcion NtQueryWnfStateData podemos leer datos y con NtUpdateWnfStateData Podemos escribir datos.
+Antes expliquemos el porque corromper la estructura **_WNF_STATE_DATA** primero, es porque  el campo **_WNF_STATE_DATA.AllocatedSize** determina cuantos bytes se pueden escribir  y **_WNF_STATE_DATA.DataSize** determina cuantos bytes podemos leer  y al corromper estos campos con un valor alto nos proporciona una primitiva de lectura y escritura para escribir mas que el tamaño del buffe, con la funcion **NtQueryWnfStateData** podemos leer datos y con **NtUpdateWnfStateData** Podemos escribir datos.
 
-Ahora para detectar que a una estructura WNF_STATE_DATA le sigue la estructura nt!_WNF_NAME_INSTANCE debemos realizar una sobrelectura con la primitiva de lectura que nos dio WNF_STATE_DATA  y verificar los bytes  03 09 A8 que indican el incio de la estrcutra  WNF_NAME_INSTANCE.
+Ahora para detectar que a una estructura **WNF_STATE_DATA** le sigue la estructura **_WNF_NAME_INSTANCE** debemos realizar una sobrelectura con la primitiva de lectura que nos dio **WNF_STATE_DATA**  y verificar los bytes  **03 09 A8** que indican el incio de la estructura  **WNF_NAME_INSTANCE**.
 
 El codigo en el exploit nos queda de la siguiente manera, asi sprayeamos el pool:
 
@@ -367,9 +367,9 @@ Luego asi comprobamos que la memoria tenga las dos estructuras contiguas:
  if (WnfIns->Header.NodeByteSize == 0xa8 && WnfIns->Header.NodeTypeCode == 0x903 && WnfIns->RunRef.Ptr == NULL) 
 
 ```
-En esta parte prueba que estemos ante un encabezado _WNF_NAME_INSTANCE.
+En esta parte prueba que estemos ante un encabezado **_WNF_NAME_INSTANCE**.
 
-Pero antes de eso comprueba de que tengamos una estructura WNF_STATE_DATA corrompida
+Pero antes de eso comprueba de que tengamos una estructura **WNF_STATE_DATA** corrompida
 
 ``` c
 state = NtQueryWnfStateData(&StateNames[i], NULL, NULL, &Stamp, &Buff, &BufferSize);
@@ -377,17 +377,17 @@ state = NtQueryWnfStateData(&StateNames[i], NULL, NULL, &Stamp, &Buff, &BufferSi
 
 ```
 
-Aca lo que sucede que la funcion  NtQueryWnfStateData lee datos y los almacena en  Buff y si el BufferSIze es menor que StateData→DataSize entonces nos devolvera un C0000023 que quiere decir que estamos antes un WNF_STATE_DATA corrompido.
+Aca lo que sucede que la funcion  **NtQueryWnfStateData** lee datos y los almacena en  **Buff** y si el **BufferSIze** es menor que **StateData→DataSize** entonces nos devolvera un **C0000023** que quiere decir que estamos antes un **WNF_STATE_DATA** corrompido.
 
-luego lo destacado que tiene la estructura  WNF_NAME_INSTANCE es el campo WNF_NAME_INSTANCE.CreatorProcess que nos da el EPROCESS del proceso actual.
+luego lo destacado que tiene la estructura  **WNF_NAME_INSTANCE** es el campo **WNF_NAME_INSTANCE.CreatorProcess** que nos da el **EPROCESS** del proceso actual.
 
-Otra cosa relevante que tiene  WNF_NAME_INSTANCE es el campo _WNF_NAME_INSTANCE.StateData. Que es un puntero a _WNF_STATE_DATA y si reemplazamos ese puntero por una direccion arbitraria podemos leer y escribir en dicha direccion.
+Otra cosa relevante que tiene  **WNF_NAME_INSTANCE** es el campo **_WNF_NAME_INSTANCE.StateData** Que es un puntero a **_WNF_STATE_DATA** y si reemplazamos ese puntero por una direccion arbitraria podemos leer y escribir en dicha direccion.
 
 Esto nos podria perimitir usar la tecnica de Previus Mode para escalar privilegios, veamos como se hace:
 
-El puntero StateData se establece primero en _EPROCESS+0x28, lo que permite leer el campo _KPROCESS.ThreadListHead, Los ThreadListHead apunta a _KTHREAD.ThreadListEntry del primer hilo, que es el hilo actua ,al restar el desplazamiento de ThreadListEntry, se obtiene la direccion _KTHREAD base del hilo actual.
+El puntero **StateData** se establece primero en **_EPROCESS+0x28**, lo que permite leer el campo **_KPROCESS.ThreadListHead**, **ThreadListHead** apunta a **_KTHREAD.ThreadListEntry** del primer hilo, que es el hilo actua ,al restar el desplazamiento de **ThreadListEntry**, se obtiene la direccion **_KTHREAD** base del hilo actual.
 
-Con la dirección base de _KTHREAD, el exploit apunta StateData a_KTHREAD+0x220, lo que le permite leer/escribir hasta tres bytes a partir de _KTHREAD+0x230, utiliza esto para establecer el byte _KTHREAD+0x232 en cero. el desplazamiento 0x232 corresponde a _KTHREAD.PreviousMode, ponemos  PreviousMode en cero y con lo que engañamos al kernel que algunas llamadas al sistema se originan en el kernel y nos permite usar las funciones NtReadVirtualMemoryy NtWriteVirtualMemory para poder hacer el robo de tokens y escalar privilegios.
+Con la dirección base de **_KTHREAD**, **StateData** apunta a **_KTHREAD+0x220**, lo que le permite leer/escribir hasta tres bytes a partir de **_KTHREAD+0x230**, utiliza esto para establecer el byte **_KTHREAD+0x232** en cero. el desplazamiento 0x232 corresponde a **_KTHREAD.PreviousMode**, ponemos  **PreviousMode** en cero y con lo que engañamos al kernel que algunas llamadas al sistema se originan en el kernel y nos permite usar las funciones **NtReadVirtualMemory** y **NtWriteVirtualMemory** para poder hacer el robo de tokens y escalar privilegios.
 
 
 ```c
