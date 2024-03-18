@@ -262,3 +262,4 @@ nt!_WNF_NAME_INSTANCE
 
 Estas estructuras son allocadas en el pool paginado por medio de las funciones NtCreateWnfStateName and NtUpdateWnfStateData, nesesitamos asignar estas dos estrcuturas y que nuestra memoria quede confirgurada de la siguiente manera:
 
+![Configuracion de memoria](https://github.com/GabrielDurdiak/GabrielDurdiak.github.io/blob/master/images/NTFS%20CHUNK.png)
