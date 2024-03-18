@@ -7,7 +7,7 @@ La vulnerabilidad se encuentra en el componente ntfs.sys dentro de la funcion Nt
 
 Funcion Vulnerable:
 
-```c
+``` c
 __int64 __fastcall NtfsQueryEaUserEaList(__int64 a1, __int64 eas_blocks_for_file, __int64 a3, __int64 out_buf, unsigned int out_buf_length, unsigned int *a6, char a7)
 {
 
@@ -58,7 +58,7 @@ LABEL_8:
 
 El parche:
 
-`` c
+``` c
  v12 = *v11;
     v13 = *((unsigned __int8 *)v11 + 4);
     v22 = *v11 + v8;
