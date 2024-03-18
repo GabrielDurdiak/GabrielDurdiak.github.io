@@ -225,3 +225,40 @@ NTSTATUS Status = NtSetEaFile(hFile, &eaStatus, payLoad, sizeof(payLoad));
 ```
 
 
+
+Ahora usaremos los objetos WNF  Windows Notification Facility, vamos a  sprayear el paged pool  y  sobreescribir su estructura  con el desbordamiento para lograr la escalada de privilegios.
+
+Vamos a nesesitar sprayear el pool con dos estructuras que son _WNF_NAME_INSTANCE y _WNF_STATE_DATA.
+
+```c
+
+nt!_WNF_STATE_DATA
+   +0x000 Header           : _WNF_NODE_HEADER
+   +0x004 AllocatedSize    : Uint4B
+   +0x008 DataSize         : Uint4B
+   +0x00c ChangeStamp      : Uint4B
+```
+
+```c
+nt!_WNF_NAME_INSTANCE
+   +0x000 Header           : _WNF_NODE_HEADER
+   +0x008 RunRef           : _EX_RUNDOWN_REF
+   +0x010 TreeLinks        : _RTL_BALANCED_NODE
+   +0x028 StateName        : _WNF_STATE_NAME_STRUCT
+   +0x030 ScopeInstance    : Ptr64 _WNF_SCOPE_INSTANCE
+   +0x038 StateNameInfo    : _WNF_STATE_NAME_REGISTRATION
+   +0x050 StateDataLock    : _WNF_LOCK
+   +0x058 StateData        : Ptr64 _WNF_STATE_DATA
+   +0x060 CurrentChangeStamp : Uint4B
+   +0x068 PermanentDataStore : Ptr64 Void
+   +0x070 StateSubscriptionListLock : _WNF_LOCK
+   +0x078 StateSubscriptionListHead : _LIST_ENTRY
+   +0x088 TemporaryNameListEntry : _LIST_ENTRY
+   +0x098 CreatorProcess   : Ptr64 _EPROCESS
+   +0x0a0 DataSubscribersCount : Int4B
+   +0x0a4 CurrentDeliveryCount : Int4B
+
+```
+
+Estas estructuras son allocadas en el pool paginado por medio de las funciones NtCreateWnfStateName and NtUpdateWnfStateData, nesesitamos asignar estas dos estrcuturas y que nuestra memoria quede confirgurada de la siguiente manera:
+
