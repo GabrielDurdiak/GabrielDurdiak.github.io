@@ -262,7 +262,7 @@ nt!_WNF_NAME_INSTANCE
 
 Estas estructuras son allocadas en el pool paginado por medio de las funciones NtCreateWnfStateName and NtUpdateWnfStateData, nesesitamos asignar estas dos estrcuturas y que nuestra memoria quede confirgurada de la siguiente manera:
 
-![Configuracion de memoria](https://github.com/GabrielDurdiak/GabrielDurdiak.github.io/blob/master/images/NTFS%20CHUNK.png)
+![Configuracion de memoria](/images/NTFS%20CHUNK.png)
 
 
 Primero empezamos con la primera estructura que queremos que desborde que es _WNF_STATE_DATA, asignamos varias estructuras en el pool y liberamos otras con la funcion NtDeleteWnfStateData,luego como primera prueba para ver si  nuestra estructura _WNF_STATE_DATA fue corrompida cuando activamos la vulnerabilidad tenemos que ver el  ChangeStamp es 0xcafe  que ese valor fue puesto por nosotros para identificarlo.
