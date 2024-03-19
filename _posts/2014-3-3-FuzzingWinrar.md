@@ -27,6 +27,6 @@ This method basically returns the pointer to the 7zip object
 
 Then the open method of your vtable is executed, which is what will open the file and verify its header and other things.
 
-
+![config](/images/imagen2.png)
 
 
