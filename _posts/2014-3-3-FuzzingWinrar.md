@@ -20,7 +20,7 @@ I clarify that in this tutorial I am not going to get too deeply into the revers
 
 Well, the first method that the 7zip library executes is the CreateObject where the 7zip object will be created and then use its vtable methods to work with the file.
 
-![config](images/Captura desde 2024-03-19 02-28-18.png)
+![config](images/404.jpg)
 
 
 This method basically returns the pointer to the 7zip object
