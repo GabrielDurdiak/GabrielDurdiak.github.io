@@ -11,9 +11,9 @@ The fuzzer that we are going to use is WinAFL, the first step we have to do is c
 
 The harness has to be designed as follows:
 
-*First open the file.
-*Run the functions.
-*Close the file and free memory.
+* First open the file.
+* Run the functions.
+* Close the file and free memory.
 
 To be able to put it together we first have to apply reversing and see how it works, so we choose the functions to fuzz.
 
