@@ -3,6 +3,7 @@ layout: post
 title: Fuzzing WinRAR 7zip library
 ---
 
+# Harness making
 
 As the title says, we are going to fuzz the **7zip format** of winrar, where all the methods and functions used by the 7zip format are found in the dll **7zxa.dll**.
 
@@ -10,9 +11,9 @@ The fuzzer that we are going to use is WinAFL, the first step we have to do is c
 
 The harness has to be designed as follows:
 
--First open the file.
--Run the functions.
--Close the file and free memory.
+*First open the file.
+*Run the functions.
+*Close the file and free memory.
 
 To be able to put it together we first have to apply reversing and see how it works, so we choose the functions to fuzz.
 
