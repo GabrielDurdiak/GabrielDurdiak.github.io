@@ -35,3 +35,34 @@ The fourth argument of this OPEN function will be a pointer to some pointers tha
 Also this argument contains our the HFile of our file.
 
 ![config](/images/imagen3.png)
+
+This is the image of argument 2.
+
+And as the first argument is the pointer to our 7zip Object.
+
+Our harness looks like this:
+
+![config](/images/imagen4.png)
+
+This is the elaboration of createObject, as we see I open the file with CreateFile because that is how winrar opens it
+
+Now to create argument 2 of the open function, the pointer p_functions_winrar_TrabajaConArchivo that contains the pointers to the functions ReadFIle, Setfilepointer, etc. must be reprogrammed in our harness, because you might wonder?
+
+Because to access these functions in the harness you have to load winrar.exe with Loadlibrary and this function does not initialize ReadFile and other functions, so we have to reprogram it.
+
+![config](/images/imagen5.png)
+
+This is ReadFile and I created a structure with each function and sent it to it as an argument.
+
+![config](/images/imagen6.png)
+
+The open function looked like this.
+
+![config](/images/imagen7.png)
+
+Then I call two more methods of the Vtable 7zip, which are method8 and method6, which are roughly functions that prepare the 7zip object to later send it to the extraction function, but I did not do the extraction function because a function had to be reprogrammed. too complex and speaking with Boken he told me that it was not necessary, the main thing is that it sends the open function because that is where it checks the header and other things.
+
+![config](/images/imagen8.png)
+
+
+
