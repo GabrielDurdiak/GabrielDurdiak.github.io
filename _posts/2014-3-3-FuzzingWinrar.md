@@ -30,3 +30,8 @@ Then the open method of your vtable is executed, which is what will open the fil
 ![config](/images/imagen2.png)
 
 
+The fourth argument of this OPEN function will be a pointer to some pointers that point to winrar.exe functions, the 3rd argument is a pointer to 0x100000, the second argument will be a pointer to winrar functions that those functions will be used to work on the file later since they are Readfile, Setfilepointer, etc. 
+
+Also this argument contains our the HFile of our file.
+
+![config](/images/imagen3.png)
