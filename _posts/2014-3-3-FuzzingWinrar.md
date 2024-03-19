@@ -18,8 +18,9 @@ To be able to put it together we first have to apply reversing and see how it wo
 
 I clarify that in this tutorial I am not going to get too deeply into the reversing part but rather I am going to give a screenshot of how it works.
 
-Well, the first method that the 7zip library executes is the CreateObject where the 7zip object will be created and then use its vtable methods to work with the file
-![Configuracion de memoria](images/Captura desde 2024-03-19 02-28-18.png)
+Well, the first method that the 7zip library executes is the CreateObject where the 7zip object will be created and then use its vtable methods to work with the file.
+
+![config](images/Captura desde 2024-03-19 02-28-18.png)
 
 
 This method basically returns the pointer to the 7zip object
