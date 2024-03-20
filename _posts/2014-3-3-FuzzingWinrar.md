@@ -3,9 +3,11 @@ layout: post
 title: Fuzzing WinRAR 7zip library
 ---
 
+As the title says, we are going to fuzz the **7zip format** of winrar, where all the methods and functions used by the 7zip format are found in the dll **7zxa.dll**.
+
+
 # Harness making
 
-As the title says, we are going to fuzz the **7zip format** of winrar, where all the methods and functions used by the 7zip format are found in the dll **7zxa.dll**.
 
 The fuzzer that we are going to use is WinAFL, the first step we have to do is create a harness with the functionalities that we want to test.
 
