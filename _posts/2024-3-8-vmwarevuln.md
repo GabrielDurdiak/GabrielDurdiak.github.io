@@ -7,7 +7,7 @@ This post is going to be about the two vulnerabilities found by me in the VMWare
 I found these two vulnerabilities in the Cortado ThinPrint virtual printing component, specifically in the fonts.
 
 first a brief explanation of the architecture of the virtual printing component
-![config](https://blog.khonggianmang.vn/wp-content/uploads/2020/09/image-2.png)
+![config](/images/vmtuto1.png)
 
 
 The most interesting process is **vprintproxy.exe** which is started on the host machine and the data is sent from the guest machine through the **COM1** port to the **vprintproxy.exe** process.
