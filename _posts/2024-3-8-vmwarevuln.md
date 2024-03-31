@@ -18,13 +18,13 @@ so **EMFSPOOL** contains file format records like TTF, images and more
 
 ### Fonts
 
-For source records, TPView.dll supports the full processing of 5 records that EMFSPOOL is available:
+For source records, **TPView.dll** supports the full processing of 5 records that **EMFSPOOL** is available:
 
-EMRI_ENGINE_FONT: Defines a font in TrueType format.
-EMRI_TYPE1_FONT: Defines a font in PostScript Type 1 font format.
-EMRI_DESIGNVECTOR: Contains the design vector of a font, which characterizes the appearance of a font in 16 properties.
-EMRI_SUBSET_FONT - Contains a partial font in TrueType format, with enough glyph outlines for pages up to the current page.
-EMRI_DELTA_FONT - Contains new glyphs that will be merged with data from a previous EMRI_SUBSET_FONT record.
+**EMRI_ENGINE_FONT:** Defines a font in TrueType format.
+**EMRI_TYPE1_FONT:**  Defines a font in PostScript Type 1 font format.
+**EMRI_DESIGNVECTOR:** Contains the design vector of a font, which characterizes the appearance of a font in 16 properties.
+**EMRI_SUBSET_FONT:** Contains a partial font in TrueType format, with enough glyph outlines for pages up to the current page.
+**EMRI_DELTA_FONT:** Contains new glyphs that will be merged with data from a previous EMRI_SUBSET_FONT record.
 
 
 
