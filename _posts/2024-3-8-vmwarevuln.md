@@ -66,4 +66,23 @@ We can see here how the realloc function takes the size in esi which is **0xFFFF
 
 The vulnerability was reported and vmware assigned a CVE which is the following https://www.vmware.com/security/advisories/VMSA-2022-0002.html
 
+## VMWare Workstation Out-of-bounds read vulnerability in the Cortado ThinPrint component TTC Parser (CVE-2021-21987)
+
+I found this vulnerability in the **TCC Header**, first let's explain a little where this header comes from, this appears on the Fileformat.com page
+
+**What is a TTC file?**
+The TTC is abbreviated as TrueType Collection is an extension of True Type format. A TTC file can combine the multiple font files into it. These files are beneficial for combining multiple fonts that share many glyphs in common. Before Windows 2000, the TTC files were used in Chinese, Japanese, and Korean versions of windows but later on the support were available for all regions.
+
+**The Structure of Font Collection File**
+A TTC file consists of a TTC Header table, Table Directories, and multiple OpenType tables. The TTC Header must be found at the start of the file. A complete table directory for each font must be existed. The TableDirectory format should be similar as existed in a non-collection file. The table counts in all directories within a TTC file are calculated from the start of a TTC file. The tables in a TTC file are referenced through the table directory of their respective fonts. A few of the OpenType tables must appear multiple times, once for each font added in the TTC. Whereas the other tables may be shared by multiple fonts in the TTC file.
+
+**TTC Header**
+
+Two versions of the TTC Header table are available so far:
+
+    Version 1.0 is used for TTC files without digital signatures.
+    Version 2.0 can be used for TTC files with or without digital signatures. Here are the TTC Header tables of both versions:
+
+
+![config](/images/vmtuto6.png)
 
