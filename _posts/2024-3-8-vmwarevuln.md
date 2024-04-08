@@ -88,6 +88,7 @@ Two versions of the TTC Header table are available so far:
 
     Version 1.0 is used for TTC files without digital signatures.
     Version 2.0 can be used for TTC files with or without digital signatures. Here are the TTC Header tables of both versions:
+    
 ![config](/images/vmtuto6.png)
 
 
