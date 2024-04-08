@@ -48,7 +48,7 @@ first let's look at the **EMRI_TYPE1_FONT** record.
 
 ![config](/images/vmtuto3.png)
 
-The vulnerability is that we can send a negative FileEndOffs value. I sent -1 to check and this is an error because the field description says that it only accepts unsigned integers.
+The vulnerability is that we can send a negative **FileEndOffs** value. I sent -1 to check and this is an error because the field description says that it only accepts unsigned integers.
 
 We see the verification:
 
@@ -58,5 +58,12 @@ We see the verification:
 ``` c
 if ( FileEndOffs + pFontType1Init > pEndFontType1 )
 ```
-Add the pointer to the beginning of where the font file begins with FileEndOffs so that sum will be less than the end pointer of the font because it is a signed check so it will successfully pass that check and later it will use the FileEndOffs field as size in the realloc function, which will generate an error and followed by a denial of service.
+Add the pointer to the beginning of where the font file begins with **FileEndOffs** so that sum will be less than the end pointer of the font because it is a signed check so it will successfully pass that check and later it will use the FileEndOffs field as size in the **realloc** function, which will generate an error and followed by a denial of service.
+
+![config](/images/vmtuto5.png)
+
+We can see here how the realloc function takes the size in esi which is **0xFFFFFFFF** and uses it to reallocar followed by that giving an error and generating a denial of service.
+
+The vulnerability was reported and vmware assigned a CVE which is the following https://www.vmware.com/security/advisories/VMSA-2022-0002.html
+
 
