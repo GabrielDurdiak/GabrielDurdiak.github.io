@@ -6,7 +6,9 @@ This post is going to be about the two vulnerabilities found by me in the VMWare
 
 I found these two vulnerabilities in the Cortado ThinPrint virtual printing component, specifically in the fonts.
 
-first a brief explanation of the architecture of the virtual printing component
+
+## Architecture and how the virtual printing component works
+First a brief explanation of the architecture of the virtual printing component
 ![config](/images/vmtuto1.png)
 
 
