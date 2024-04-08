@@ -31,6 +31,9 @@ and for example we choose the **EMRI_ENGINE_FONT** registry to search for vulner
   ![config](/images/vmtuto.png)
 
 I started reverse and finding the function that processes the **EMRI_ENGINE_FONT** record that contains the TTF format and that is then also parsed.
+![config](/images/vmtuto2.png)
+
+In the image we can see that there are the different EMFSPOOL records if, for example, it is of the type EMRI_ENGINE_FONT, the function that parses goes, this type of font is the TTF and the function sends as a parameter the pointer to the EMFSPOOL record and the size of the font TTF
 
 then I started to do the harness, I searched for a large corpus of TTF files and ran WinAFL, but I realized after a while that the fuzzer was running and not discovering new paths, so I started doing reversing manually to see the different paths it took. TTF format for me to edit the files and improve code coverage and discover new paths.
 
