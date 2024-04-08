@@ -92,7 +92,7 @@ We edit the font and write **A's**
 
 ![config](/images/vmtuto9.png)
 
-this is the vulnerable function:
+This is the vulnerable function:
 
 ![config](/images/vmtuto7.png)
 
@@ -101,4 +101,6 @@ We see that we edit our font and write **A's** in the **tableDirectoryOffsets** 
 ![config](/images/vmtuto8.png)
 
 
+
+This vulnerability is the first of the two that I found and I reported it to vmware, but they told me that it had been reported a few weeks ago by another person, so after a while I looked to see who found it first and it is someone who He calls houjingyi233 on his github, I name him to give the credits to him.
 
