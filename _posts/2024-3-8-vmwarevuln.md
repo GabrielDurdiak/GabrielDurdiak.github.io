@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Vulnerabilities Found By Me in VMWare During My Internship
+title: Vulnerabilities found in VMWare by me
 ---
 This post is going to be about the two vulnerabilities found by me in the VMWare hypervisor during my internship at quarkslab, it was a great experience in which I learned a lot.
 
