@@ -31,6 +31,7 @@ and for example we choose the **EMRI_ENGINE_FONT** registry to search for vulner
   ![config](/images/vmtuto.png)
 
 I started reverse and finding the function that processes the **EMRI_ENGINE_FONT** record that contains the TTF format and that is then also parsed.
+
 ![config](/images/vmtuto2.png)
 
 In the image we can see that there are the different EMFSPOOL records if, for example, it is of the type EMRI_ENGINE_FONT, the function that parses goes, this type of font is the TTF and the function sends as a parameter the pointer to the EMFSPOOL record and the size of the font TTF
@@ -41,4 +42,21 @@ At that moment when I started doing reversing manually I started to find the vul
 
 ## Denial-of-service vulnerability via Cortado ThinPrint (CVE-2022-22938)
 
-I found this vulnerability when the **EMRI_ENGINE_FONT** record was parsed, since the **FileSizes** field accepts negative numbers
+This vulnerability is found in the parsers for the **EMRI_ENGINE_FONT** records and for **EMRI_TYPE1_FONT**, I chose **TYPE1** to show the vulnerability.
+
+first let's look at the **EMRI_TYPE1_FONT** record.
+
+![config](/images/vmtuto3.png)
+
+The vulnerability is that we can send a negative FileEndOffs value. I sent -1 to check and this is an error because the field description says that it only accepts unsigned integers.
+
+We see the verification:
+
+
+![config](/images/vmtuto4.png)
+
+``` c
+if ( FileEndOffs + pFontType1Init > pEndFontType1 )
+```
+Add the pointer to the beginning of where the font file begins with FileEndOffs so that sum will be less than the end pointer of the font because it is a signed check so it will successfully pass that check and later it will use the FileEndOffs field as size in the realloc function, which will generate an error and followed by a denial of service.
+
