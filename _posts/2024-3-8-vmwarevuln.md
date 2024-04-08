@@ -83,11 +83,13 @@ Two versions of the TTC Header table are available so far:
     Version 1.0 is used for TTC files without digital signatures.
     Version 2.0 can be used for TTC files with or without digital signatures. Here are the TTC Header tables of both versions:
 
+![config](/images/vmtuto8.png)
 
 The vulnerability is in the **tableDirectoryOffsets** field, because the function reads the content of the **tableDirectoryOffsets** field, if we edit the tableDirectoryOffsets field of the **TTF** font header and put A's then it will throw an error.
 
 
 We edit the font and write **A's**
+
 ![config](/images/vmtuto9.png)
 
 this is the vulnerable function:
@@ -96,7 +98,7 @@ this is the vulnerable function:
 
 We see that we edit our font and write **A's** in the **tableDirectoryOffsets** field and then the function will want to read the content of **0x41414141** so a crash will be generated.
 
-![config](/images/vmtuto8.png)
+
 
 ![config](/images/vmtuto6.png)
 
