@@ -52,6 +52,10 @@ first let's look at the **EMRI_TYPE1_FONT** record.
 
 The vulnerability is that we can send a negative **FileEndOffs** value. I sent -1 to check and this is an error because the field description says that it only accepts unsigned integers.
 
+In the poc we send the value -1 which will be FileEndOffs as the image shows.
+![config](/images/vmtuto10.png)
+
+
 We see the verification:
 
 
