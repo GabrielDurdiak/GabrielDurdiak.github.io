@@ -111,3 +111,10 @@ We see that we edit our font and write **A's** in the **tableDirectoryOffsets** 
 
 This vulnerability is the first of the two that I found and I reported it to vmware, but they told me that it had been reported a few weeks ago by another person, so after a while I looked to see who found it first and it is someone who He calls houjingyi233 on his github, I name him to give the credits to him.
 
+
+**Referral links:**
+-https://www.blackhat.com/docs/eu-17/materials/eu-17-Mandal-The-Great-Escapes-Of-Vmware-A-Retrospective-Case-Study-Of-Vmware-G2H-Escape-Vulnerabilities.pdf
+-https://www.exploit-db.com/docs/english/37276-escaping-vmware-workstation-through-com1.pdf
+-https://j00ru.vexillium.org/talks/pacsec-windows-metafiles-an-analysis-of-the-emf-attack-surface-and-recent-vulnerabilities/
+
+
