@@ -113,8 +113,8 @@ This vulnerability is the first of the two that I found and I reported it to vmw
 
 
 **Referral links:**
--https://www.blackhat.com/docs/eu-17/materials/eu-17-Mandal-The-Great-Escapes-Of-Vmware-A-Retrospective-Case-Study-Of-Vmware-G2H-Escape-Vulnerabilities.pdf
--https://www.exploit-db.com/docs/english/37276-escaping-vmware-workstation-through-com1.pdf
--https://j00ru.vexillium.org/talks/pacsec-windows-metafiles-an-analysis-of-the-emf-attack-surface-and-recent-vulnerabilities/
+- https://www.blackhat.com/docs/eu-17/materials/eu-17-Mandal-The-Great-Escapes-Of-Vmware-A-Retrospective-Case-Study-Of-Vmware-G2H-Escape-Vulnerabilities.pdf
+- https://www.exploit-db.com/docs/english/37276-escaping-vmware-workstation-through-com1.pdf
+- https://j00ru.vexillium.org/talks/pacsec-windows-metafiles-an-analysis-of-the-emf-attack-surface-and-recent-vulnerabilities/
 
 
